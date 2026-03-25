@@ -255,4 +255,4 @@ def get_otp():
     return jsonify({"success": True, "otp": otp, "used": new_used_count, "remaining": 3 - new_used_count})
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=8000, debug=False)
