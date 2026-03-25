@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — NumberStore</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #111118;
+    --border: #1e1e2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Login ── */
+  #login-screen {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, #1a0a3e 0%, #0a0a0f 70%);
+  }
+
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 48px;
+    width: 400px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .login-box h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+
+  .login-box p {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 32px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .field {
+    margin-bottom: 16px;
+  }
+
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input, select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus, select:focus {
+    border-color: var(--accent);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-primary:hover { background: #6d28d9; }
+
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #059669; }
+
+  .btn-red { background: var(--red); color: white; }
+  .btn-red:hover { background: #dc2626; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn-sm { padding: 6px 14px; font-size: 11px; }
+
+  #login-error {
+    color: var(--red);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+    margin-top: 12px;
+    display: none;
+  }
+
+  /* ── Dashboard ── */
+  #dashboard { display: none; }
+
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .topbar .logo {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .topbar .logo span { color: var(--accent); }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .badge {
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+  }
+
+  nav {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 0;
+  }
+
+  .nav-tab {
+    padding: 14px 20px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    user-select: none;
+  }
+
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+
+  /* ── Stats ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .stat-card:hover::after { transform: scaleX(1); }
+
+  .stat-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    line-height: 1;
+  }
+
+  .stat-value.green { color: var(--green); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.cyan { color: var(--accent2); }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .panel-title {
+    font-size: 20px;
+    font-weight: 800;
+  }
+
+  /* ── Forms ── */
+  .form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 16px;
+    align-items: flex-end;
+  }
+
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+
+  .form-card h3 {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    font-family: 'Space Mono', monospace;
+  }
+
+  td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    background: var(--bg);
+  }
+
+  tr:hover td { background: #12121a; }
+
+  .tag {
+    display: inline-block;
+    padding: 3px 10px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .tag-green { background: rgba(16,185,129,0.15); color: var(--green); }
+  .tag-red { background: rgba(239,68,68,0.15); color: var(--red); }
+  .tag-yellow { background: rgba(245,158,11,0.15); color: var(--yellow); }
+  .tag-purple { background: rgba(124,58,237,0.15); color: var(--accent); }
+
+  .action-btns { display: flex; gap: 8px; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--green);
+    padding: 16px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    z-index: 9999;
+    transform: translateX(200%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 340px;
+  }
+
+  #toast.show { transform: translateX(0); }
+  #toast.error { border-left-color: var(--red); }
+
+  /* ── OTP pill ── */
+  .otp-list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .otp-pill {
+    padding: 4px 10px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .otp-pill.used {
+    background: rgba(100,116,139,0.15);
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+
+  .otp-pill.fresh {
+    background: rgba(6,182,212,0.15);
+    color: var(--accent2);
+  }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 60px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    main { padding: 16px; }
+    .form-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>Admin Panel</h1>
+    <p>// NumberStore management system</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="login-user" placeholder="admin" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn btn-primary" onclick="doLogin()">→ Login</button>
+    <p id="login-error">❌ Wrong credentials</p>
+  </div>
+</div>
+
+<!-- ── DASHBOARD ── -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="logo">Number<span>Store</span> <span class="badge">ADMIN</span></div>
+    <div class="topbar-right">
+      <span id="pending-badge" style="font-family:Space Mono;font-size:12px;color:var(--yellow);display:none;">⚠ Pending Payments</span>
+      <button class="btn btn-ghost btn-sm" onclick="window.location='/admin/logout'">Logout</button>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-tab active" onclick="switchTab('overview')">Overview</div>
+    <div class="nav-tab" onclick="switchTab('numbers')">Numbers</div>
+    <div class="nav-tab" onclick="switchTab('payments')">Payments</div>
+    <div class="nav-tab" onclick="switchTab('orders')">Orders</div>
+  </nav>
+
+  <main>
+    <!-- Stats -->
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Numbers</div><div class="stat-value" id="s-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value green" id="s-avail">—</div></div>
+      <div class="stat-card"><div class="stat-label">Sold</div><div class="stat-value red" id="s-sold">—</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Pay</div><div class="stat-value yellow" id="s-pend">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total Orders</div><div class="stat-value cyan" id="s-orders">—</div></div>
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="panel active" id="panel-overview">
+      <div style="color:var(--muted);font-family:Space Mono;font-size:13px;line-height:2;">
+        Welcome back, Admin.<br>
+        Use the tabs above to manage numbers, verify payments, and view orders.<br><br>
+        <span style="color:var(--accent);">Quick tip:</span> Add a number first, then add OTPs for that number.
+      </div>
+    </div>
+
+    <!-- NUMBERS -->
+    <div class="panel" id="panel-numbers">
+      <div class="form-card">
+        <h3>Add New Number</h3>
+        <div class="form-row">
+          <div class="field" style="flex:1.5">
+            <label>Phone Number</label>
+            <input type="text" id="n-number" placeholder="+91XXXXXXXXXX" />
+          </div>
+          <div class="field" style="flex:1">
+            <label>Country</label>
+            <input type="text" id="n-country" placeholder="India" />
+          </div>
+          <div class="field" style="flex:0.7">
+            <label>Price (₹)</label>
+            <input type="number" id="n-price" placeholder="49" />
+          </div>
+          <button class="btn btn-primary" style="white-space:nowrap" onclick="addNumber()">+ Add</button>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Add OTP to Number</h3>
+        <div class="form-row">
+          <div class="field" style="flex:2">
+            <label>Phone Number</label>
+            <input type="text" id="otp-number" placeholder="+91XXXXXXXXXX" />
+          </div>
+          <div class="field" style="flex:1">
+            <label>OTP Code</label>
+            <input type="text" id="otp-code" placeholder="123456" />
+          </div>
+          <button class="btn btn-primary" style="white-space:nowrap" onclick="addOtp()">+ Add OTP</button>
+        </div>
+      </div>
+
+      <div id="numbers-table"></div>
+    </div>
+
+    <!-- PAYMENTS -->
+    <div class="panel" id="panel-payments">
+      <div class="panel-header">
+        <div class="panel-title">Payment Requests</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadPayments()">↻ Refresh</button>
+      </div>
+      <div id="payments-table"></div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="panel" id="panel-orders">
+      <div class="panel-header">
+        <div class="panel-title">Completed Orders</div>
+        <button class="btn btn-ghost btn-sm" onclick="loadOrders()">↻ Refresh</button>
+      </div>
+      <div id="orders-table"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── Auth ──
+async function doLogin() {
+  const u = document.getElementById('login-user').value;
+  const p = document.getElementById('login-pass').value;
+  const res = await fetch('/admin/login', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({username: u, password: p})
+  });
+  const data = await res.json();
+  if (data.success) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadStats();
+    loadNumbers();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+// ── Toast ──
+function toast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error show' : 'show';
+  setTimeout(() => t.className = isError ? 'error' : '', 3000);
+}
+
+// ── Tabs ──
+function switchTab(name) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'numbers') loadNumbers();
+  if (name === 'payments') loadPayments();
+  if (name === 'orders') loadOrders();
+}
+
+// ── Stats ──
+async function loadStats() {
+  const r = await fetch('/admin/stats');
+  const d = await r.json();
+  document.getElementById('s-total').textContent = d.total_numbers;
+  document.getElementById('s-avail').textContent = d.available;
+  document.getElementById('s-sold').textContent = d.sold;
+  document.getElementById('s-pend').textContent = d.pending_payments;
+  document.getElementById('s-orders').textContent = d.total_orders;
+  if (d.pending_payments > 0) document.getElementById('pending-badge').style.display = 'block';
+  else document.getElementById('pending-badge').style.display = 'none';
+}
+
+// ── Numbers ──
+async function loadNumbers() {
+  const r = await fetch('/admin/numbers');
+  const nums = await r.json();
+  const div = document.getElementById('numbers-table');
+  if (!nums.length) { div.innerHTML = '<div class="empty">No numbers in stock yet.</div>'; return; }
+
+  let html = `<table>
+    <thead><tr>
+      <th>Number</th><th>Country</th><th>Price</th><th>OTPs</th><th>Used</th><th>Status</th><th>Action</th>
+    </tr></thead><tbody>`;
+
+  for (const n of nums) {
+    const statusTag = n.status === 'available' ? 'tag-green' :
+                      n.status === 'sold' ? 'tag-yellow' : 'tag-red';
+    const otpsHtml = (n.otps || []).map(o =>
+      `<span class="otp-pill ${o.used ? 'used' : 'fresh'}">${o.code}</span>`
+    ).join('') || '<span style="color:var(--muted)">none</span>';
+
+    html += `<tr>
+      <td>${n.number}</td>
+      <td>${n.country}</td>
+      <td>₹${n.price}</td>
+      <td><div class="otp-list">${otpsHtml}</div></td>
+      <td>${n.otp_used || 0}/3</td>
+      <td><span class="tag ${statusTag}">${n.status}</span></td>
+      <td>
+        <div class="action-btns">
+          <button class="btn btn-red btn-sm" onclick="deleteNumber('${n.number}')">Delete</button>
+        </div>
+      </td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+async function addNumber() {
+  const number = document.getElementById('n-number').value;
+  const country = document.getElementById('n-country').value;
+  const price = document.getElementById('n-price').value;
+  const r = await fetch('/admin/numbers/add', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({number, country, price})
+  });
+  const d = await r.json();
+  toast(d.msg, !d.success);
+  if (d.success) { loadNumbers(); loadStats(); }
+}
+
+async function deleteNumber(number) {
+  if (!confirm('Delete ' + number + '?')) return;
+  await fetch('/admin/numbers/delete', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({number})
+  });
+  toast('Number deleted');
+  loadNumbers(); loadStats();
+}
+
+async function addOtp() {
+  const number = document.getElementById('otp-number').value;
+  const otp = document.getElementById('otp-code').value;
+  const r = await fetch('/admin/otp/add', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({number, otp})
+  });
+  const d = await r.json();
+  toast(d.msg, !d.success);
+  if (d.success) { document.getElementById('otp-code').value = ''; loadNumbers(); }
+}
+
+// ── Payments ──
+async function loadPayments() {
+  const r = await fetch('/admin/payments');
+  const pays = await r.json();
+  const div = document.getElementById('payments-table');
+  if (!pays.length) { div.innerHTML = '<div class="empty">No payment requests yet.</div>'; return; }
+
+  let html = `<table><thead><tr>
+    <th>Payment ID</th><th>Number</th><th>Buyer</th><th>Contact</th><th>UTR</th><th>Amount</th><th>Status</th><th>Action</th>
+  </tr></thead><tbody>`;
+
+  for (const p of pays) {
+    const tag = p.status === 'pending' ? 'tag-yellow' :
+                p.status === 'approved' ? 'tag-green' : 'tag-red';
+    const btns = p.status === 'pending' ? `
+      <div class="action-btns">
+        <button class="btn btn-green btn-sm" onclick="verifyPay('${p.payment_id}','approve')">✓ Approve</button>
+        <button class="btn btn-red btn-sm" onclick="verifyPay('${p.payment_id}','reject')">✗ Reject</button>
+      </div>` : '—';
+    html += `<tr>
+      <td>${p.payment_id}</td>
+      <td>${p.number}</td>
+      <td>${p.buyer_name}</td>
+      <td>${p.buyer_contact}</td>
+      <td>${p.utr}</td>
+      <td>₹${p.amount}</td>
+      <td><span class="tag ${tag}">${p.status}</span></td>
+      <td>${btns}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+async function verifyPay(payment_id, action) {
+  const r = await fetch('/admin/payments/verify', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({payment_id, action})
+  });
+  const d = await r.json();
+  toast(d.msg, !d.success);
+  if (d.success) { loadPayments(); loadStats(); }
+}
+
+// ── Orders ──
+async function loadOrders() {
+  const r = await fetch('/admin/orders');
+  const orders = await r.json();
+  const div = document.getElementById('orders-table');
+  if (!orders.length) { div.innerHTML = '<div class="empty">No orders yet.</div>'; return; }
+
+  let html = `<table><thead><tr>
+    <th>Order ID</th><th>Number</th><th>Buyer</th><th>Contact</th><th>Amount</th><th>Date</th>
+  </tr></thead><tbody>`;
+
+  for (const o of orders) {
+    html += `<tr>
+      <td>${o.order_id}</td>
+      <td>${o.number}</td>
+      <td>${o.buyer_name}</td>
+      <td>${o.buyer_contact}</td>
+      <td>₹${o.amount}</td>
+      <td>${o.created_at.slice(0,10)}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  div.innerHTML = html;
+}
+
+// Auto-refresh stats every 30s
+setInterval(() => {
+  if (document.getElementById('dashboard').style.display === 'block') loadStats();
+}, 30000);
+</script>
+</body>
+</html>
