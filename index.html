@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NumberStore — Virtual Numbers</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060608;
+    --surface: #0e0e15;
+    --border: #1a1a2e;
+    --accent: #7c3aed;
+    --accent2: #06b6d4;
+    --green: #10b981;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Syne', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(6,6,8,0.9);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span { color: var(--accent); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 80px 40px 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%;
+    transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, rgba(124,58,237,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 16px;
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 40px;
+  }
+
+  /* ── Search bar ── */
+  .search-bar {
+    display: flex;
+    max-width: 500px;
+    margin: 0 auto 60px;
+    gap: 0;
+  }
+
+  .search-bar input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-right: none;
+    color: var(--text);
+    padding: 14px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar input:focus { border-color: var(--accent); }
+
+  .search-bar button {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 14px 24px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .search-bar button:hover { background: #6d28d9; }
+
+  /* ── Numbers grid ── */
+  .section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px 80px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .count-badge {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    font-size: 11px;
+    font-family: 'Space Mono', monospace;
+    color: var(--muted);
+  }
+
+  .numbers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+
+  .number-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .number-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s;
+  }
+
+  .number-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .number-card:hover::before { transform: scaleX(1); }
+
+  .card-country {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--accent2);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 10px;
+  }
+
+  .card-number {
+    font-size: 20px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .card-price {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--green);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .card-btn {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .card-btn:hover { background: #6d28d9; }
+
+  .empty-state {
+    grid-column: 1/-1;
+    text-align: center;
+    padding: 80px 40px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+  }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 480px;
+    margin: 20px;
+    position: relative;
+    animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .modal-top {
+    padding: 28px 28px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-top h2 {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .modal-top p {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .modal-body { padding: 24px 28px; }
+  .modal-footer {
+    padding: 16px 28px 24px;
+    display: flex;
+    gap: 12px;
+  }
+
+  .field { margin-bottom: 16px; }
+
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  input {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  input:focus { border-color: var(--accent); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    flex: 1;
+  }
+
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #6d28d9; }
+
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    flex: 0.5;
+  }
+
+  .btn-ghost:hover { border-color: var(--accent); color: var(--text); }
+
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: #059669; }
+
+  .close-btn {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.2s;
+  }
+
+  .close-btn:hover { color: var(--text); }
+
+  /* UPI info box */
+  .upi-box {
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.3);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .upi-box .upi-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  .upi-id {
+    font-size: 18px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--text);
+    cursor: pointer;
+    user-select: all;
+  }
+
+  .upi-amount {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+  }
+
+  .upi-amount span { color: var(--green); font-weight: 700; }
+
+  /* OTP section */
+  .otp-lookup-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 28px;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .otp-lookup-box h3 {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .otp-lookup-box p {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-bottom: 20px;
+  }
+
+  .otp-result {
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.3);
+    padding: 20px;
+    text-align: center;
+    margin-top: 16px;
+    display: none;
+  }
+
+  .otp-result .otp-code {
+    font-size: 40px;
+    font-weight: 800;
+    font-family: 'Space Mono', monospace;
+    letter-spacing: 8px;
+    color: var(--green);
+  }
+
+  .otp-result .otp-meta {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'Space Mono', monospace;
+    margin-top: 8px;
+  }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'Space Mono', monospace;
+  }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed;
+    bottom: 32px; right: 32px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--green);
+    padding: 16px 24px;
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    z-index: 9999;
+    transform: translateX(200%);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 340px;
+  }
+
+  #toast.show { transform: translateX(0); }
+  #toast.error { border-left-color: var(--red); }
+
+  /* ── Steps ── */
+  .steps {
+    display: flex;
+    gap: 0;
+    max-width: 700px;
+    margin: 0 auto 60px;
+    justify-content: center;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+  }
+
+  .step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    left: calc(50% + 16px);
+    right: calc(-50% + 16px);
+    height: 1px;
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    color: var(--accent);
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .step-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  /* ── Tabs ── */
+  .page-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .page-tab {
+    padding: 14px 24px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    user-select: none;
+  }
+
+  .page-tab:hover { color: var(--text); }
+  .page-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ── OTP page ── */
+  .otp-page {
+    max-width: 480px;
+    margin: 60px auto;
+    padding: 0 40px;
+  }
+
+  @media (max-width: 600px) {
+    header { padding: 0 20px; }
+    .hero { padding: 50px 20px 40px; }
+    .section { padding: 0 20px 60px; }
+    .steps { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .step::after { display: none; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+    .otp-page { padding: 0 20px; }
+    .page-tabs { padding: 0 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Number<span>Store</span></div>
+  <div class="header-right">
+    <span id="header-stock">— available</span>
+  </div>
+</header>
+
+<div class="page-tabs">
+  <div class="page-tab active" onclick="switchPage('buy')">Buy Numbers</div>
+  <div class="page-tab" onclick="switchPage('otp')">Get OTP</div>
+</div>
+
+<!-- ── BUY PAGE ── -->
+<div class="page active" id="page-buy">
+  <div class="hero">
+    <h1>Virtual Numbers<br><em>Instant Delivery</em></h1>
+    <p>// Buy a number, receive OTPs directly here</p>
+
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-label">Browse & Select</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-label">Pay via UPI</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-label">Get Approved</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-label">Receive OTP</div></div>
+    </div>
+
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Search by country..." onkeydown="if(event.key==='Enter')filterNumbers()" />
+      <button onclick="filterNumbers()">Search</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <div class="section-title">Available Numbers</div>
+      <div class="count-badge" id="count-badge">0 numbers</div>
+    </div>
+    <div class="numbers-grid" id="numbers-grid">
+      <div class="empty-state">Loading...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── OTP PAGE ── -->
+<div class="page" id="page-otp">
+  <div class="otp-page">
+    <div style="margin-bottom:32px;padding-top:40px;">
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:6px;">Get Your OTP</h2>
+      <p style="color:var(--muted);font-size:13px;font-family:'Space Mono',monospace;">Enter your number and registered contact to receive your OTP (max 3 times).</p>
+    </div>
+
+    <div class="otp-lookup-box">
+      <div class="field">
+        <label>Your Number (that you bought)</label>
+        <input type="text" id="otp-number" placeholder="+91XXXXXXXXXX" />
+      </div>
+      <div class="field">
+        <label>Your Contact (email/phone used at purchase)</label>
+        <input type="text" id="otp-contact" placeholder="you@email.com or 9999XXXXXX" />
+      </div>
+      <button class="btn btn-green" style="width:100%" onclick="fetchOtp()">→ Get OTP</button>
+
+      <div class="otp-result" id="otp-result">
+        <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:12px;letter-spacing:1px;">YOUR OTP CODE</div>
+        <div class="otp-code" id="otp-code-display">——</div>
+        <div class="otp-meta" id="otp-meta">— / 3 used</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── BUY MODAL ── -->
+<div class="modal-overlay" id="buy-modal">
+  <div class="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-top">
+      <h2 id="modal-number-display">+91XXXXXXXXXX</h2>
+      <p id="modal-country-display">Country</p>
+    </div>
+    <div class="modal-body">
+      <div class="upi-box">
+        <div class="upi-label">Pay via UPI</div>
+        <div class="upi-id" id="upi-id-display" title="Click to copy" onclick="copyUpi()">yourUPI@bank</div>
+        <div class="upi-amount">Amount: <span id="upi-amount-display">₹0</span></div>
+      </div>
+      <p style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:20px;">
+        Pay the amount above, then enter your UTR/transaction ID below.
+      </p>
+      <div class="field">
+        <label>Your Name</label>
+        <input type="text" id="buyer-name" placeholder="Full Name" />
+      </div>
+      <div class="field">
+        <label>Contact (email or phone)</label>
+        <input type="text" id="buyer-contact" placeholder="you@email.com or 9999XXXXXX" />
+      </div>
+      <div class="field">
+        <label>UTR / Transaction ID</label>
+        <input type="text" id="buyer-utr" placeholder="12-digit UTR or transaction ID" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPayment()">Submit Payment →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUCCESS MODAL ── -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal">
+    <div class="modal-body" style="text-align:center;padding:48px 28px;">
+      <div style="font-size:48px;margin-bottom:16px;">✅</div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">Payment Submitted!</h2>
+      <p style="color:var(--muted);font-family:'Space Mono',monospace;font-size:12px;margin-bottom:24px;">
+        Your payment request has been submitted.<br>
+        Admin will verify and approve shortly.
+      </p>
+      <div style="background:var(--bg);border:1px solid var(--border);padding:16px;margin-bottom:24px;font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);">
+        Payment ID: <span id="success-pay-id" style="color:var(--accent);font-weight:700;"></span>
+      </div>
+      <p style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;">
+        Once approved, go to <strong style="color:var(--text);">"Get OTP"</strong> tab and enter your number + contact to receive OTPs.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="document.getElementById('success-modal').classList.remove('show')">Got it!</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div>© 2024 NumberStore</div>
+  <div>Secure UPI Payments</div>
+</footer>
+
+<div id="toast"></div>
+
+<script>
+const UPI_ID = "yourUPI@bank"; // ← CHANGE THIS
+let selectedNumber = null;
+let allNumbers = [];
+
+// ── Pages ──
+function switchPage(name) {
+  document.querySelectorAll('.page-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('page-' + name).classList.add('active');
+}
+
+// ── Toast ──
+function toast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = isError ? 'error show' : 'show';
+  setTimeout(() => t.className = isError ? 'error' : '', 3500);
+}
+
+// ── Load Numbers ──
+async function loadNumbers() {
+  try {
+    const r = await fetch('/numbers/list');
+    allNumbers = await r.json();
+    renderNumbers(allNumbers);
+    document.getElementById('header-stock').textContent = allNumbers.length + ' available';
+  } catch {
+    document.getElementById('numbers-grid').innerHTML = '<div class="empty-state">Could not load numbers. Try refreshing.</div>';
+  }
+}
+
+function renderNumbers(nums) {
+  const grid = document.getElementById('numbers-grid');
+  document.getElementById('count-badge').textContent = nums.length + ' numbers';
+  if (!nums.length) {
+    grid.innerHTML = '<div class="empty-state">No numbers available right now.<br>Check back soon.</div>';
+    return;
+  }
+  grid.innerHTML = nums.map(n => `
+    <div class="number-card" onclick="openBuyModal(${JSON.stringify(n).replace(/"/g,'&quot;')})">
+      <div class="card-country">${n.country}</div>
+      <div class="card-number">${n.number}</div>
+      <div class="card-footer">
+        <div class="card-price">₹${n.price}</div>
+        <button class="card-btn">Buy Now →</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterNumbers() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  const filtered = allNumbers.filter(n =>
+    n.country.toLowerCase().includes(q) || n.number.includes(q)
+  );
+  renderNumbers(filtered);
+}
+
+// ── Buy Modal ──
+function openBuyModal(num) {
+  selectedNumber = num;
+  document.getElementById('modal-number-display').textContent = num.number;
+  document.getElementById('modal-country-display').textContent = num.country;
+  document.getElementById('upi-id-display').textContent = UPI_ID;
+  document.getElementById('upi-amount-display').textContent = '₹' + num.price;
+  document.getElementById('buy-modal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('buy-modal').classList.remove('show');
+  selectedNumber = null;
+}
+
+function copyUpi() {
+  navigator.clipboard.writeText(UPI_ID).then(() => toast('UPI ID copied!'));
+}
+
+async function submitPayment() {
+  const name = document.getElementById('buyer-name').value.trim();
+  const contact = document.getElementById('buyer-contact').value.trim();
+  const utr = document.getElementById('buyer-utr').value.trim();
+
+  if (!name || !contact || !utr) {
+    toast('Please fill all fields!', true);
+    return;
+  }
+
+  if (!selectedNumber) return;
+
+  const btn = document.querySelector('#buy-modal .btn-primary');
+  btn.textContent = 'Submitting...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/buy', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        number: selectedNumber.number,
+        buyer_name: name,
+        buyer_contact: contact,
+        utr: utr
+      })
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      closeModal();
+      document.getElementById('success-pay-id').textContent = d.payment_id;
+      document.getElementById('success-modal').classList.add('show');
+      loadNumbers();
+    } else {
+      toast(d.msg, true);
+    }
+  } catch {
+    toast('Network error, try again.', true);
+  }
+
+  btn.textContent = 'Submit Payment →';
+  btn.disabled = false;
+}
+
+// ── OTP Fetch ──
+async function fetchOtp() {
+  const number = document.getElementById('otp-number').value.trim();
+  const contact = document.getElementById('otp-contact').value.trim();
+
+  if (!number || !contact) {
+    toast('Enter number and contact!', true);
+    return;
+  }
+
+  const btn = document.querySelector('#page-otp .btn-green');
+  btn.textContent = 'Fetching...';
+  btn.disabled = true;
+
+  try {
+    const r = await fetch('/otp/get', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({number, buyer_contact: contact})
+    });
+    const d = await r.json();
+
+    if (d.success) {
+      document.getElementById('otp-result').style.display = 'block';
+      document.getElementById('otp-code-display').textContent = d.otp;
+      document.getElementById('otp-meta').textContent = d.used + '/3 used · ' + (d.remaining ?? 0) + ' remaining';
+      if (d.msg) toast(d.msg);
+    } else {
+      toast(d.msg, true);
+    }
+  } catch {
+    toast('Network error, try again.', true);
+  }
+
+  btn.textContent = '→ Get OTP';
+  btn.disabled = false;
+}
+
+// ── Init ──
+loadNumbers();
+setInterval(loadNumbers, 60000); // refresh every 60s
+</script>
+</body>
+</html>
